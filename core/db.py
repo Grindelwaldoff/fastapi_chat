@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer
 from sqlalchemy.orm import declarative_base, declared_attr, sessionmaker
+from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 from core.config import settings
@@ -15,8 +16,10 @@ class PreBase:
 
 Base = declarative_base(cls=PreBase)
 
-engine = create_async_engine(settings.db_uri)
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession)
+engine = create_async_engine(settings.db_uri, echo=True, poolclass=NullPool)
+AsyncSessionLocal = sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
 
 
 async def get_session():

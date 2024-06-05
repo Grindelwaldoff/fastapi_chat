@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:13.0-alpine
+    volumes:
+      - pgdata:/var/lib/postgres/data/
+    environment:
+      POSTGRES_DB: nfm_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+  chat:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    ports:
+    - "127.0.0.1:5000:5000"
+    env_file:
+     - ../.env
+
+volumes:
+  pgdata:

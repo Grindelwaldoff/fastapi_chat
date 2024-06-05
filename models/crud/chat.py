@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Type, Optional
+from typing import TypeVar, Generic, Type, Optional, List
 
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -24,6 +24,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType]):
         await session.refresh(instance)
         return instance
 
+    async def get_room_by_id(
+        self, room_id: int, session: AsyncSession
+    ) -> ModelType:
+        obj = await session.execute(
+            select(self.model).where(self.model.id == room_id)
+        )
+        return obj.scalars().first()
+
     async def get_room_by_cookie(self, cookie: str, session: AsyncSession):
         obj = await session.execute(
             select(self.model).where(self.model.user == cookie)
@@ -37,6 +45,23 @@ class CRUDBase(Generic[ModelType, CreateSchemaType]):
             select(self.model).where(self.model.chat_room == room_id)
         )
         return objs.scalars().all()
+
+    async def list_all(self, session: AsyncSession) -> List[ModelType]:
+        objs = await session.execute(select(self.model))
+        return objs.scalars().all()
+
+    async def get_last_message(
+        self, session: AsyncSession, room_id: int
+    ):
+        obj = await session.execute(
+            select(self.model).where(self.model.chat_room == room_id)
+        )
+        return obj.scalars().first()
+
+    async def delete(self, obj: ModelType, session: AsyncSession) -> ModelType:
+        await session.delete(obj)
+        await session.commit()
+        return obj
 
 
 chat_crud = CRUDBase[ChatRoom, ChatRoomCreate](ChatRoom)

@@ -1,0 +1,69 @@
+
+stages:
+- build
+- package
+- deploy
+
+image: docker:latest
+
+.build:
+  script:
+  - echo "Compiling the code..."
+  - docker build -t $REGISTRY_IMAGE:$REGISTRY_TAG .
+  - echo "Compile complete."
+  only:
+  - develop
+
+.package:
+  script:
+  - echo "Package application..."
+  - docker tag $REGISTRY_IMAGE:$REGISTRY_TAG $REGISTRY_IMAGE:latest
+  - echo "Application successfully package."
+  only:
+  - develop
+
+
+.deploy:
+  script:
+  - echo "Deploying application..."
+  - docker service update --force --image $REGISTRY_IMAGE:latest $SWARM_SERVICE
+  - echo "Application successfully deployed."
+  only:
+  - develop
+
+#### BUILD
+
+build-chat:
+  stage: build
+  extends: .build
+  variables:
+    REGISTRY_IMAGE: nfm-chat
+    REGISTRY_TAG: $CI_COMMIT_SHORT_SHA
+  tags:
+  - nfm-runner
+
+#### PACKAGE
+
+package-chat:
+  stage: package
+  extends: .package
+  needs:
+  - build-chat
+  variables:
+    REGISTRY_IMAGE: nfm-chat
+    REGISTRY_TAG: $CI_COMMIT_SHORT_SHA
+  tags:
+  - nfm-runner
+
+#### DEPLOY
+
+deploy-chat:
+  stage: deploy
+  extends: .deploy
+  variables:
+    REGISTRY_IMAGE: nfm-chat
+    SWARM_SERVICE: nfm_chat
+  needs:
+  - package-chat
+  tags:
+  - nfm-runner

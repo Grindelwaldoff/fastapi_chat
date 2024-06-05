@@ -1,13 +1,13 @@
 from datetime import datetime
 
 from sqlalchemy import (
+    Text,
     Column,
     String,
     Integer,
-    ForeignKey,
-    Text,
     Boolean,
-    DateTime
+    DateTime,
+    ForeignKey,
 )
 
 from core.db import Base

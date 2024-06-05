@@ -1,1 +1,1 @@
-from .chat import ChatRoom, Message  # noqa
+from .models import ChatRoom, Message  # noqa
